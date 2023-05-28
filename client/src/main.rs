@@ -5,7 +5,6 @@ struct User {
     name: String,
     age: u8,
     bytes: Vec<u8>,
-
 }
 
 #[derive(Serialize, Deserialize)]
@@ -23,16 +22,29 @@ struct Response {
 async fn main() {
     let image = image::open("../image/penguin.jpg").unwrap();
     let bytes = image.as_bytes().to_vec();
-    let image_part = reqwest::multipart::Part::bytes(bytes);
+    let image_part_1 = reqwest::multipart::Part::bytes(bytes.clone());
+    let image_part_2 = reqwest::multipart::Part::bytes(bytes.clone());
+    let image_part_3 = reqwest::multipart::Part::bytes(bytes.clone());
+    let image_part_4 = reqwest::multipart::Part::bytes(bytes.clone());
     let form = reqwest::multipart::Form::new()
-        .part("image", image_part)
-        .part("user_without_bytes", reqwest::multipart::Part::text(serde_json::to_string(&User {
-            name: "penguin".to_string(),
-            age: 10,
-            bytes: vec![],
-        }).unwrap()));
+        .part("image", image_part_1)
+        .part("image", image_part_2)
+        .part("image", image_part_3)
+        .part("image", image_part_4)
+        .part(
+            "user",
+            reqwest::multipart::Part::text(
+                serde_json::to_string(&User {
+                    name: "penguin".to_string(),
+                    age: 10,
+                    bytes: vec![],
+                })
+                .unwrap(),
+            ),
+        );
     let client = reqwest::Client::new();
-    let response = client.post("http://localhost:3000/image")
+    let response = client
+        .post("http://localhost:3000/image")
         .multipart(form)
         .send()
         .await
